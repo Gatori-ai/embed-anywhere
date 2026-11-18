@@ -10,3 +10,9 @@ test('inspect.js is one expression a browser tool can evaluate', () => {
   assert.match(src, /\}\)\(window\.__embedAnywhere\);\s*$/);
   new Function(src);
 });
+import { PLATFORMS } from '../lib/snippet.js';
+import { existsSync } from 'node:fs';
+test('every platform has a playbook', () => {
+  for (const key of Object.keys(PLATFORMS)) assert.ok(existsSync(`playbooks/${key}.md`), `playbooks/${key}.md is missing`);
+  assert.ok(existsSync('playbooks/hosting.md'));
+});

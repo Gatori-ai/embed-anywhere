@@ -3,10 +3,9 @@
  * Measures an embed on the published (or preview) host page and names whatever
  * squeezes it: margins, padding, max-width containers, clipping, sideways scroll.
  *
- * Use it three ways:
+ * Use it two ways:
  *  - node bin/verify-embed.mjs <host page>   (runs this at three widths, with screenshots)
  *  - an agent's browser tool: evaluate this whole file in the host page; it returns the report
- *  - a person: paste it into the browser console on the host page
  *
  * Optional settings before running: window.__embedAnywhere = { url: 'https://your-page...', mode: 'auto' }
  * MIT. Brought to you by Gatori.ai.
@@ -38,7 +37,7 @@
   if (!frames.length) {
     var all = Array.prototype.map.call(document.querySelectorAll('iframe'), function (f) { return f.src || '(no src)'; });
     add('fail', 'Embed found', 'No Embed Anywhere frame on this page. Frames present: ' + (all.join(', ') || 'none') + '.',
-      'Check the snippet was saved and the page was published. Some builders run custom code only on the published page.');
+      'Check the embed code was saved and the page was published. Some builders run custom code only on the published page.');
     return { url: location.href, viewport: { width: vw, height: vh }, pass: false, results: results, suspects: [] };
   }
 

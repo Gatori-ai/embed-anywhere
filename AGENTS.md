@@ -1,128 +1,152 @@
-# Embed Anywhere: instructions for the agent
+# Embed Anywhere: the runbook
 
 Brought to you by [Gatori.ai](https://gatori.ai).
 
-You help a person put a page they own onto the site builder they already use (Kajabi, GoHighLevel, Squarespace, WordPress, Webflow, Shopify, Wix, or another). The page is built and hosted on its own, then shown inside the builder in a frame. The frame keeps the page's design exactly as built, because the builder's theme cannot reach inside it.
+You put a page the person owns onto the site builder they already use (Kajabi, GoHighLevel, Squarespace, WordPress, Webflow, Shopify, Wix, or another). You build the page, host it, place it in the builder in a frame, publish, and check the published result. You do every step yourself through the tools you have: the builder's MCP, connector or API; the person's signed-in browser; or computer use. The person answers questions and approves the publish. They never copy, paste or edit code.
 
-| You were asked to | Read |
+The frame keeps the page's design exactly as built, because the builder's theme cannot reach inside it.
+
+| You were asked to | Go to |
 |---|---|
-| Build a page and put it on someone's site | "The job, start to finish" |
-| Fix an embed that looks wrong | "Step 5: check the published page" |
+| Put a page on someone's site | "The run" |
+| Fix an embed that looks wrong | "Step 6: verify and fix" |
 | Change this project's code or docs | "Working on the code" |
 
-## The job, start to finish
+## The run
 
-Do every step. The job is finished when step 5 passes at every width, never earlier.
+The run ends when step 6 passes at every width. Report then, never earlier.
 
-### Step 1: ask four things, one at a time
+### Step 0: take stock of your channels
 
-1. What the page is for, and what it should say. Use their words and facts. Never invent prices, dates, testimonials or numbers; leave a visible placeholder like `[PRICE]` and tell them.
-2. Which site builder, and the address of the page it will appear on (or will appear on once published).
-3. How it shows: the whole screen (a landing or sales page), a section that fits its content inside an existing page, or a fixed-height box (a calculator, form or widget). Explain the three in one line each if they are unsure. Full screen is the usual answer for a whole page.
-4. Where they host: Netlify, Vercel, Cloudflare Pages or GitHub Pages. If they have no preference and have no account, Netlify is the simplest.
+Before asking anything, find out what you can operate. Check, without asking the person:
+
+- **Hosting:** which of Netlify, Vercel, Cloudflare or GitHub you can deploy to ([playbooks/hosting.md](playbooks/hosting.md) has the checks).
+- **The builder:** an MCP server, connector or API key for it; a browser tool attached to the person's own browser, where they are already signed in; computer use.
+- **This toolkit:** `node --version` (20 or later) and `npm install` in this folder. `npm run selftest` proves the verify step works on this machine (about a minute).
+
+If you lack a channel to the builder, ask the person to connect one, in one sentence, naming the easiest option you know works for that builder (for example "connect the Kajabi MCP", or "turn on the Claude in Chrome extension and sign in to GoHighLevel in that browser"). Their part is the sign-in. Never ask for a password, and never type one.
+
+### Step 1: ask what only the person knows
+
+One question at a time, and only what you cannot find yourself:
+
+1. What the page is for and what it says, in their words. Never invent prices, dates, testimonials or numbers. Use a visible placeholder like `[PRICE]` and list each one in your report.
+2. Which builder and site, and the page address it should live at. Look up the site's domains yourself through your channel when you can.
+3. How it shows. Decide it yourself unless the request leaves it open: a whole landing or sales page is **full screen**; a custom section inside an existing page is **auto** (fits its content); a calculator, form or widget is **fixed**.
 
 ### Step 2: build the page
 
-Start from `starter/` (copy the folder). Any framework works as long as the output is static files. Keep these rules, because each one prevents a visible defect once embedded:
+Copy `starter/` and build from it. Any framework works if the output is static files. Each rule below prevents a defect that shows once the page is embedded:
 
-- `body { margin: 0 }`. A browser's default 8px margin shows as a border inside the frame.
-- Nothing wider than a phone screen: `img { max-width: 100%; height: auto }`, no fixed pixel widths on containers, long words and links allowed to wrap.
-- Include `frame.js` before `</body>`, with the person's main domain: `<script src="frame.js" data-top-hosts="theirsite.com"></script>`. It keeps link clicks from loading other sites inside the frame, and the "fits its content" mode needs it to report height.
-- For the "fits its content" mode, avoid `100vh` heights. The frame grows to fit the page, the viewport grows with the frame, and the page grows again. Use `.is-embedded` (set by frame.js) to switch those sections to a fixed or automatic height, as `starter/index.html` does with its hero.
-- Checkout, booking and payment links should leave the frame: link them to the person's own domain (listed in `data-top-hosts`) or add `data-embed-target="top"`. Payment providers and many forms refuse to run inside a third-party frame, and Safari blocks their cookies there.
-- Forms that post to a third-party service inside the frame can silently lose submissions in Safari. Prefer a form on the host page, a provider that documents iframe support, or a top-level submit.
+- `body { margin: 0 }`. A default 8px margin shows as a border inside the frame.
+- Nothing wider than a phone: `img { max-width: 100%; height: auto }`, no fixed pixel widths on containers.
+- Keep `frame.js` and its tag before `</body>`, with the person's domains: `<script src="frame.js" data-top-hosts="theirsite.com"></script>`. It sends links to their own site to the whole window and opens other sites in a new tab, and auto mode needs it for the height.
+- Auto mode: avoid `100vh` heights. The frame grows with the page and the viewport grows with the frame. Switch those sections under `.is-embedded`, as `starter/index.html` does with its hero.
+- Checkout, booking and payment links leave the frame: point them at the person's own domain or add `data-embed-target="top"`. Payment providers and many forms refuse to run inside another site's frame, and Safari blocks their cookies there.
 
 ### Step 3: host it
 
-Keep `starter/netlify.toml` (Netlify) or `starter/vercel.json` (Vercel) next to the page. Both send `Content-Security-Policy: frame-ancestors *`, which lets any site show the page. Once the embed works, offer to replace `*` with the person's domains.
-
-Deploy to production and note the final address. On Vercel, preview addresses ask for a login by default; embed the production address.
-
-Then check that the page is public and frameable:
+Follow [playbooks/hosting.md](playbooks/hosting.md). Deploy to production, then:
 
 ```
 node bin/check-embed.mjs https://their-page.netlify.app --parent https://www.theirsite.com
 ```
 
-Fix every FAIL before going on. A redirect warning means the snippet should use the final address it names.
+Fix every FAIL before you touch the builder. If it reports a redirect, use the final address it names from here on.
 
-### Step 4: make the snippet and give exact steps
+### Step 4: build the embed code
 
 ```
-node bin/embed-snippet.mjs --url https://their-page.netlify.app --platform kajabi --mode fullscreen --background "#f2ece0"
+node bin/embed-snippet.mjs --url https://their-page.netlify.app --platform kajabi --mode fullscreen --background "#f2ece0" --json
 ```
 
 - `--platform`: kajabi, gohighlevel, squarespace, wordpress, webflow, shopify, wix, other
-- `--mode`: fullscreen, auto (fits its content), fixed
-- `--background`: the page's own background color, so no white flash shows while it loads
-- auto mode: `--min` and `--max` heights; fixed mode: `--height`; both: `--full-bleed true|false` for edge to edge
-- `--json` gives you the code, steps and notes as data
+- `--mode`: fullscreen, auto, fixed
+- `--format`: `html` for a code block on the page (the default); `script` for channels that take only scripts (page header or footer code); `loader` for script channels with a size limit or hosted script registration (add `--files-dir <hosted page folder>`, then redeploy the hosted page)
+- `--background`: the hosted page's background color, so no white flash shows while it loads
+- auto: `--min`, `--max`; fixed: `--height`; both: `--full-bleed true|false` for edge to edge
 
-It prints the code and the numbered steps for that builder. Give the person both, unchanged. If you can operate their builder yourself (a browser tool with their session, or the builder's API), do the steps for them and tell them what you did.
+The JSON gives you `code`, `playbook`, `verify` (the command for step 6) and `notes`. The code already handles the usual first-embed problems: builder padding and margins, centered max-width columns, grid gaps, wrappers whose transform traps fixed elements, sideways scroll from a full-width band, and the visitor's `?utm_` tags and `#anchor` (passed into the frame).
 
-The snippet already handles the usual first-embed problems: builder padding and margins, centered max-width columns, grid gaps, wrappers whose transform traps fixed elements, horizontal scroll from a full-width band, and the visitor's `?utm=` tags and `#anchor` (passed into the frame).
+### Step 5: place it and publish
 
-Kajabi, GoHighLevel and Squarespace are tested on live sites. The others are written from each builder's documented features and are marked untested, so step 5 matters even more there.
+Open the playbook the JSON names and follow the first channel in it that you have:
 
-### Step 5: check the published page
+| Builder | Tested | Playbook |
+|---|---|---|
+| Kajabi | yes | [playbooks/kajabi.md](playbooks/kajabi.md) |
+| GoHighLevel | yes | [playbooks/gohighlevel.md](playbooks/gohighlevel.md) |
+| Squarespace | yes | [playbooks/squarespace.md](playbooks/squarespace.md) |
+| WordPress | no | [playbooks/wordpress.md](playbooks/wordpress.md) |
+| Webflow | no | [playbooks/webflow.md](playbooks/webflow.md) |
+| Shopify | no | [playbooks/shopify.md](playbooks/shopify.md) |
+| Wix | no | [playbooks/wix.md](playbooks/wix.md) |
+| Anything else | no | [playbooks/other.md](playbooks/other.md) |
 
-Every embed gets checked on the published page, or on the builder's public preview address, at phone, tablet and desktop widths. Builders add their own wrappers on the first embed (extra margins, a section that refuses full width, padding on a hidden row), and you only see them on the real page.
+Untested playbooks come from each builder's documentation. Expect a surprise or two and lean on step 6.
+
+Rules for this step:
+
+- Before changing an existing page, save what is there (the builder's content as JSON, or a screenshot and the code you replace) so it can be put back.
+- Publishing puts the page in front of the public. If the request did not already say to publish, get one yes from the person first, with the address it will go live at. A new, unlinked page or the builder's preview is fine to use without asking.
+- Put the code in exactly as generated. Builders' code editors sometimes add characters (autocomplete, smart quotes); read the saved code back and compare.
+- Set the builder page's own title, description and share image. Search engines and link previews read the builder's page, never the frame.
+
+### Step 6: verify and fix
+
+Builders add their own wrappers on the first embed: extra margins, a section that refuses full width, padding on a hidden row, a chat bubble on top. You see them only on the real page, so every embed gets checked on the published page or the builder's preview address:
 
 ```
-npm install          # once, for playwright-core
-node bin/verify-embed.mjs https://www.theirsite.com/their-page --url https://their-page.netlify.app
+node bin/verify-embed.mjs https://www.theirsite.com/their-page --url https://their-page.netlify.app --json
 ```
 
-It opens the host page at 390, 768 and 1440 pixels wide, then:
+It opens the page in headless Chrome at 390, 768 and 1440 pixels wide and reports per width:
 
-- finds the frame and confirms the hosted page loaded inside it;
-- full screen: confirms the frame fills the window from the top left corner and nothing sits on top of it;
-- edge to edge: confirms the frame spans the window with no gap on either side;
-- fits its content: confirms the height follows the page and nothing is cut off;
-- confirms neither the host page nor the hosted page scrolls sideways;
-- lists every wrapper around the frame that adds padding, margin, max-width, clipping or a transform, closest first;
-- saves a screenshot per width in `embed-check/`.
+- whether the frame is there and the hosted page loaded inside it;
+- full screen: the frame fills the window from the top left and nothing covers it;
+- edge to edge: the frame spans the window with no gap at either side;
+- auto: the height follows the content and nothing is cut off;
+- neither the host page nor the hosted page scrolls sideways;
+- `suspects`: every wrapper around the frame adding padding, margin, max-width, clipping or a transform, closest first;
+- a screenshot per width in `embed-check/`. Look at every one.
 
-Read the report and look at every screenshot. Then fix what it names:
+Fix through the same channel you used to place the code. The playbook's "Fixing what verify reports" table maps each failure to the builder setting. The usual ones:
 
-| Report says | Usual fix |
+| Report | Usual fix |
 |---|---|
-| Full width fails, a wrapper lists padding or max-width | Set that section, row or column to full width with padding 0 in the builder, or switch on the builder's "full width" or "flush" option |
-| A wrapper lists overflow-x hidden | That wrapper clips the band. Use full screen mode, or move the code block out of that section |
-| Fills the window fails on a plain iframe | The person pasted their own iframe. Replace it with the generated snippet |
-| Height stays at the minimum | frame.js is missing on the hosted page, or the snippet address redirects |
+| Full width fails; a suspect lists padding or max-width | Set that section, row or column to full width with padding 0 |
+| A suspect lists overflow-x hidden | That wrapper clips the band: switch to full screen, or move the code out of that section |
+| Fills the window fails on a plain iframe | Someone placed their own iframe. Replace it with the generated code |
+| Height stays at the minimum | frame.js is missing on the hosted page, or the address redirects |
 | Sideways scroll inside the frame | Something on the hosted page is too wide. Fix the page and redeploy it |
-| Hosted page margin | Add `body{margin:0}` to the hosted page |
-| Nothing on top fails | A chat bubble, cookie bar or popup from the builder covers the frame. Turn it off for this page |
-| Page opens fails | The address is unpublished or needs a login |
+| Hosted page margin | `body{margin:0}` on the hosted page, redeploy |
+| Nothing on top fails | A chat bubble, cookie bar or popup covers the frame. Turn it off for this page |
+| Page opens fails | The page is unpublished or needs a login: use the in-browser check below |
 
-Run it again after each fix until every width passes. Then tell the person it passed and at which widths, and show one screenshot.
+Repeat until every width passes.
 
-When the page needs a login to view (an unpublished builder preview), or Node is unavailable: open the page in your browser tool, evaluate the whole of `embed/inspect.js` in the page, and read the returned report. Resize to a phone width and run it again. A person can paste the same file into the browser console.
+**Pages that need a login, or no Node:** open the page in the browser tool you already drive, evaluate the whole of `embed/inspect.js` in the page, and read the report it returns. Resize to 390 pixels wide and run it again, then at desktop width.
 
-### Things to tell the person
+### Report
 
-- Search engines and link previews read the builder's page. They should set its title, description and share image in the builder's page settings.
-- To change the page later, they edit and redeploy the hosted page. The builder's code stays the same.
+Tell the person, in a few lines: the live address, that it passed verification and at which widths, one screenshot, any placeholders they still need to fill, and that future changes go to the hosted page (you redeploy it; the builder stays as it is). Then offer to restrict `frame-ancestors` to their domains ([playbooks/hosting.md](playbooks/hosting.md)), or do it if the request covered it.
 
 ## Working on the code
 
 | Path | What it is |
 |---|---|
-| `lib/snippet.js` | Builds the embed code, steps and notes for each builder and mode. Pure functions |
+| `lib/snippet.js` | Builds the embed code for each builder, mode and format; names the playbook and verify command |
 | `lib/headers.js` | Reads response headers and says whether another site may frame the page |
-| `embed/frame.js` | Goes on the hosted page: embedded class, link routing, height messages |
-| `embed/inspect.js` | Runs on the host page and measures the embed. One expression returning a report |
+| `embed/frame.js` | Goes on the hosted page: `is-embedded` class, link routing, height messages |
+| `embed/inspect.js` | Runs on the host page and measures the embed. One expression that returns a report |
 | `bin/embed-snippet.mjs` | Command line for `lib/snippet.js` |
-| `bin/check-embed.mjs` | Fetches the hosted page and checks status, redirects, framing headers and frame.js |
-| `bin/verify-embed.mjs` | Opens the host page in headless Chrome at three widths and runs `inspect.js` plus checks inside the frame |
-| `starter/` | The page people copy. `starter/frame.js` must stay identical to `embed/frame.js` (a test checks) |
-| `generator/`, `preview/` | The web version of the snippet maker, with a preview on a sample builder page |
-| `demo/` | Sample host pages with hostile builder wrappers, generated by `scripts/build-demo.mjs` |
-| `tests/` | `npm test`. No network and no browser needed |
+| `bin/check-embed.mjs` | Fetches the hosted page: status, redirects, framing headers, frame.js |
+| `bin/verify-embed.mjs` | Headless Chrome at three widths: runs `inspect.js`, checks inside the frame, saves screenshots |
+| `playbooks/` | How to place the code in each builder, channel by channel |
+| `starter/` | The page to build from. `starter/frame.js` must stay identical to `embed/frame.js` (a test checks) |
+| `scripts/selftest.mjs` | Serves sample host pages with hostile builder wrappers and runs verify on each |
+| `tests/` | `npm test`: offline, no browser |
 
-Message types between frame.js and the snippet are `gatori-embed:height` and `gatori-embed:load`. The snippet accepts them only from its own frame's window and origin.
+Message types between frame.js and the embed code are `gatori-embed:height` and `gatori-embed:load`. The embed code accepts them only from its own frame's window and origin.
 
-After a change to `lib/snippet.js`, `embed/frame.js` or `embed/inspect.js`: run `npm test`, rebuild the demo pages, serve the folder locally (`python3 -m http.server 8787`, then `node scripts/build-demo.mjs http://127.0.0.1:8787`), and run `bin/verify-embed.mjs` on `demo/fullscreen.html` and `demo/section.html`. Both must pass at every width. Rebuild the demo against the live address before committing.
-
-Code that people paste into builders is ASCII only, with HTML entities for anything else. Keep the copy plain and short.
+After a change to `lib/`, `embed/` or `bin/`: `npm test` and `npm run selftest` must both pass. A playbook change that comes from a live run should say which builder version or date it was checked on. Embed code is ASCII only. Keep the copy plain and short.

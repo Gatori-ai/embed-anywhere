@@ -7,3 +7,9 @@
     Content-Security-Policy = "frame-ancestors *"
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Content-Type-Options = "nosniff"
+
+# Only for the loader format: the builder page fetches this file with an integrity check.
+[[headers]]
+  for = "/embed-loader.js"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"

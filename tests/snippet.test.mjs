@@ -4,14 +4,18 @@ import { buildSnippet, PLATFORMS, SnippetError, escapeAttr } from '../lib/snippe
 
 const url = 'https://example-page.netlify.app/offer';
 
-test('every platform and allowed mode builds ASCII code with the page address', () => {
+test('every platform, mode and format builds ASCII code with the page address', () => {
   for (const [key, p] of Object.entries(PLATFORMS)) {
     for (const mode of p.modes) {
       const s = buildSnippet({ url, platform: key, mode });
       assert.match(s.code, /src="https:\/\/example-page\.netlify\.app\/offer"/);
+      const sc = buildSnippet({ url, platform: key, mode, format: 'script' });
+      assert.match(sc.code, /^<script>/);
+      assert.doesNotMatch(sc.code.slice(8, -10), /<\/script>/i);
+      assert.match(sc.code, /^[\x09\x0a\x0d\x20-\x7e]*$/);
       assert.match(s.code, /^[\x09\x0a\x0d\x20-\x7e]*$/, `${key}/${mode} has non-ASCII characters`);
-      assert.ok(s.steps.length >= 2);
-      assert.match(s.steps.at(-1), /verify-embed/);
+      assert.equal(s.playbook, `playbooks/${key}.md`);
+      assert.match(s.verify, /verify-embed/);
     }
   }
 });
@@ -60,7 +64,8 @@ test('rejects bad input with plain messages', () => {
   assert.throws(() => buildSnippet({ url: 'http://example.com' }), /https/);
   assert.throws(() => buildSnippet({ url: 'not a url' }), /full address/);
   assert.throws(() => buildSnippet({ url, platform: 'myspace' }), /Unknown platform/);
-  assert.throws(() => buildSnippet({ url, platform: 'wix', mode: 'auto' }), /supports: fixed/);
+  assert.throws(() => buildSnippet({ url, platform: 'wix', mode: 'auto' }), /supports: fullscreen, fixed/);
+  assert.throws(() => buildSnippet({ url, format: 'pdf' }), /Unknown format/);
   assert.throws(() => buildSnippet({ url, mode: 'auto', minHeight: 5 }), /Minimum height/);
   assert.doesNotThrow(() => buildSnippet({ url: 'http://localhost:8080/', mode: 'fixed' }));
 });
