@@ -13,7 +13,8 @@ None connected: ask the person to connect one, in one sentence, and say what wil
 
 Rules:
 
-- Deploy the folder that holds `index.html`, `frame.js` and the host config from `starter/` (`netlify.toml` or `vercel.json`). The config sends `Content-Security-Policy: frame-ancestors *`, which lets the builder show the page.
+- Deploy the folder that holds `index.html`, `frame.js` and the host config: `netlify.toml` or `vercel.json` from `starter/`, or the `_headers` and `vercel.json` that `bin/prepare-page.mjs` writes. The config sends `Content-Security-Policy: frame-ancestors *`, which lets the builder show the page.
+- A page already deploying from their repository stays on that host. Commit the prepared files and let it redeploy.
 - Use the production address. Vercel preview addresses need a login by default, and so do password-protected Netlify sites.
 - With the loader format, also deploy the `embed-loader.js` the snippet command wrote. The starter config gives it the cross-origin header the integrity check needs.
 - After deploying, run `node bin/check-embed.mjs <address> --parent <builder page address>` and fix every FAIL before touching the builder.

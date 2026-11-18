@@ -8,6 +8,7 @@
 import { analyzeFrameHeaders } from '../lib/headers.js';
 import { checkUrl, SnippetError } from '../lib/snippet.js';
 import { parseArgs } from './args.mjs';
+import { auditHtml } from '../lib/prepare.js';
 
 const a = parseArgs(process.argv.slice(2));
 const target = a._[0] || a.url;
@@ -48,6 +49,12 @@ if (res.ok && !/frame\.js/.test(body)) {
   line('INFO', 'frame.js', 'not found on the page. Full screen and fixed height work without it. "Fits its content" needs it, and it keeps links from opening inside the frame.');
 } else if (res.ok) {
   line('OK', 'frame.js', 'included.');
+}
+for (const w of res.ok ? auditHtml(body).filter((x) => x.check === 'Frame busting') : []) {
+  line('WARN', w.check, `${w.detail} ${w.fix}`);
+}
+if (res.ok && !/frame\.js/.test(body)) {
+  console.log('      Page already deployed where you cannot add files? Full screen works as is. For the rest, run bin/prepare-page.mjs on its files and redeploy.');
 }
 
 process.exit(failed ? 1 : 0);

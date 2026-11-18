@@ -14,13 +14,21 @@ Give your agent this repository and the job, in your own words:
 
 > Use github.com/Gatori-ai/embed-anywhere. Build me a sales page for my coaching program and put it on my Kajabi site at /coaching.
 
+Already have the page? Point at it:
+
+> Use github.com/Gatori-ai/embed-anywhere. Put ~/Downloads/launch.html on my Squarespace site at /launch.
+
+> Use github.com/Gatori-ai/embed-anywhere. Embed https://my-app.vercel.app on my GoHighLevel funnel, full screen.
+
+A page made somewhere else keeps its design. The agent adds one small script and the header that lets your builder show it, or embeds a live page as it is when it can.
+
 Claude Code, Codex, Cursor or any agent that can run commands follows [AGENTS.md](AGENTS.md). It works through what you already have connected: the builder's MCP or API, your signed-in browser (for example Claude in Chrome), or computer use. If it is missing a connection, it asks you to sign in once. It never asks you to copy or paste code.
 
 What the agent does:
 
 1. Checks which hosting accounts and builder connections it can use.
 2. Asks what the page says and where it goes.
-3. Builds the page from [`starter/`](starter/).
+3. Builds the page from [`starter/`](starter/), or prepares the one you have.
 4. Deploys it and checks your builder will be allowed to show it.
 5. Places the embed code on your builder page and publishes (asking you first if you did not already say to).
 6. Opens the published page at phone, tablet and desktop widths, finds anything off (gaps at the edges, a section that refuses full width, a sideways scrollbar, a page cut off at the bottom), fixes it in the builder and checks again until every width passes.
@@ -57,7 +65,7 @@ Each builder has a playbook in [`playbooks/`](playbooks/). Untested playbooks co
 | [`starter/`](starter/) | The page the agent builds from, with Netlify and Vercel configs |
 | [`embed/frame.js`](embed/frame.js) | Goes on the hosted page: link handling and height reporting |
 | [`embed/inspect.js`](embed/inspect.js) | Measures an embed on any page; agents run it in a browser tool |
-| `bin/` | `embed-snippet` (builds the code), `check-embed` (can this page be framed), `verify-embed` (checks the published page at three widths) |
+| `bin/` | `prepare-page` (readies a page you already have), `embed-snippet` (builds the code), `check-embed` (can this page be framed), `verify-embed` (checks the published page at three widths) |
 | `scripts/selftest.mjs` | `npm run selftest`: proves the checks work on this machine against sample pages built like a messy site builder |
 
 Needs Node 20 or later and Google Chrome (or Chromium) for the verify step.

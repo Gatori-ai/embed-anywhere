@@ -1,11 +1,14 @@
-// Proves the toolchain works on this machine: serves the starter page and five
+// Proves the toolchain works on this machine: serves the starter page and
 // sample host pages that imitate a messy site builder (body margin, padded
 // sections, a centered column, a grid gap, a transform wrapper), then runs
-// verify-embed.mjs on each. Four must pass; the plain iframe must fail.
+// verify-embed.mjs on each. It also takes a page someone already had (default
+// margin, no frame.js), embeds it raw (must fail in auto mode) and after
+// bin/prepare-page.mjs (must pass). The plain iframe must fail.
 //
 //   npm run selftest
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, mkdtemp, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { spawn } from 'node:child_process';
 import { join, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,6 +29,18 @@ ${snippet}</div></div></div></section>
 <section class="page-section"><div class="content-wrapper"><p>Host text below.</p></div></section>
 <footer class="site-footer">Host site footer</footer></body></html>`;
 
+// A page that exists before Embed Anywhere: browser default margin, no frame.js.
+const work = await mkdtemp(join(tmpdir(), 'embed-anywhere-selftest-'));
+const rawDir = join(work, 'existing');
+await (await import('node:fs/promises')).mkdir(rawDir);
+await writeFile(join(rawDir, 'index.html'), `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>Existing page</title>
+<style>h1{font:600 40px Georgia,serif}p{max-width:640px}</style></head><body>
+<h1>A page someone already built</h1>${'<p>Plain content that was never written for a frame.</p>'.repeat(30)}
+</body></html>`);
+const preparedDir = join(work, 'existing-embed-ready');
+const served = { '/existing-raw/': rawDir, '/existing/': preparedDir };
+
 const server = createServer(async (req, res) => {
   const path = new URL(req.url, 'http://x').pathname;
   const starter = `http://127.0.0.1:${server.address().port}/starter/`;
@@ -34,6 +49,8 @@ const server = createServer(async (req, res) => {
     '/host/section.html': () => shell('Fits its content', buildSnippet({ url: starter, mode: 'auto', id: 't' }).code),
     '/host/script.html': () => shell('Script only', buildSnippet({ url: starter, mode: 'fullscreen', format: 'script', id: 't' }).code),
     '/host/loader.html': () => shell('Loader', buildSnippet({ url: starter, mode: 'fullscreen', format: 'loader', id: 't' }).code),
+    '/host/existing-raw.html': () => shell('Existing page, raw', buildSnippet({ url: `http://127.0.0.1:${server.address().port}/existing-raw/`, mode: 'auto', id: 't' }).code),
+    '/host/existing.html': () => shell('Existing page, prepared', buildSnippet({ url: `http://127.0.0.1:${server.address().port}/existing/`, mode: 'auto', id: 't' }).code),
     '/host/plain-iframe.html': () => shell('Plain iframe', `<iframe src="${starter}" width="100%" height="900" style="border:0"></iframe>`),
   };
   if (path === '/starter/embed-loader.js') {
@@ -42,8 +59,11 @@ const server = createServer(async (req, res) => {
     return res.end(js);
   }
   if (pages[path]) { res.writeHead(200, { 'content-type': types['.html'] }); return res.end(pages[path]()); }
-  const file = join(root, path.endsWith('/') ? path + 'index.html' : path);
-  if (!file.startsWith(join(root, 'starter'))) { res.writeHead(404); return res.end(); }
+  const prefix = Object.keys(served).find((k) => path.startsWith(k));
+  const file = prefix
+    ? join(served[prefix], path.slice(prefix.length) || 'index.html')
+    : join(root, path.endsWith('/') ? path + 'index.html' : path);
+  if (!prefix && !file.startsWith(join(root, 'starter'))) { res.writeHead(404); return res.end(); }
   try {
     const body = await readFile(file);
     res.writeHead(200, { 'content-type': types[extname(file)] || 'application/octet-stream' });
@@ -63,10 +83,14 @@ function run(args) {
 
 server.listen(0, '127.0.0.1', async () => {
   const base = `http://127.0.0.1:${server.address().port}`;
-  const cases = [['fullscreen', 0], ['section', 0], ['script', 0], ['loader', 0], ['plain-iframe', 1]];
-  let ok = true;
+  const prep = await run([join(root, 'bin/prepare-page.mjs'), rawDir, '--out', preparedDir]);
+  let ok = prep.status === 0;
+  console.log(`${ok ? 'OK  ' : 'FAIL'} prepare-page: exited ${prep.status}, expected 0`);
+  if (!ok) console.log(prep.out.slice(-2500));
+  const cases = [['fullscreen', 0], ['section', 0], ['script', 0], ['loader', 0], ['existing-raw', 1], ['existing', 0], ['plain-iframe', 1]];
   for (const [name, expected] of cases) {
-    const args = [join(root, 'bin/verify-embed.mjs'), `${base}/host/${name}.html`, '--url', `${base}/starter/`, '--shots', join(root, 'embed-check', name)];
+    const target = name.startsWith('existing') ? `${base}/${name}/` : `${base}/starter/`;
+    const args = [join(root, 'bin/verify-embed.mjs'), `${base}/host/${name}.html`, '--url', target, '--shots', join(root, 'embed-check', name)];
     if (name === 'plain-iframe') args.push('--mode', 'auto');
     const r = await run(args);
     const good = r.status === expected;

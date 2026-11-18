@@ -9,6 +9,7 @@ The frame keeps the page's design exactly as built, because the builder's theme 
 | You were asked to | Go to |
 |---|---|
 | Put a page on someone's site | "The run" |
+| Put a page they already have on their site (HTML files, or a page already live somewhere) | "The run", with "Starting from a page that exists" at step 2 |
 | Fix an embed that looks wrong | "Step 6: verify and fix" |
 | Change this project's code or docs | "Working on the code" |
 
@@ -30,9 +31,10 @@ If you lack a channel to the builder, ask the person to connect one, in one sent
 
 One question at a time, and only what you cannot find yourself:
 
-1. What the page is for and what it says, in their words. Never invent prices, dates, testimonials or numbers. Use a visible placeholder like `[PRICE]` and list each one in your report.
-2. Which builder and site, and the page address it should live at. Look up the site's domains yourself through your channel when you can.
-3. How it shows. Decide it yourself unless the request leaves it open: a whole landing or sales page is **full screen**; a custom section inside an existing page is **auto** (fits its content); a calculator, form or widget is **fixed**.
+1. Whether the page exists already. Look first: a file or folder they named, a page address in the request, a repository. If it exists, skip the content question.
+2. What the page is for and what it says, in their words (new pages only). Never invent prices, dates, testimonials or numbers. Use a visible placeholder like `[PRICE]` and list each one in your report.
+3. Which builder and site, and the page address it should live at. Look up the site's domains yourself through your channel when you can.
+4. How it shows. Decide it yourself unless the request leaves it open: a whole landing or sales page is **full screen**; a custom section inside an existing page is **auto** (fits its content); a calculator, form or widget is **fixed**.
 
 ### Step 2: build the page
 
@@ -44,7 +46,27 @@ Copy `starter/` and build from it. Any framework works if the output is static f
 - Auto mode: avoid `100vh` heights. The frame grows with the page and the viewport grows with the frame. Switch those sections under `.is-embedded`, as `starter/index.html` does with its hero.
 - Checkout, booking and payment links leave the frame: point them at the person's own domain or add `data-embed-target="top"`. Payment providers and many forms refuse to run inside another site's frame, and Safari blocks their cookies there.
 
+### Starting from a page that exists
+
+Keep the page's design and copy exactly as they are. Change only what embedding needs.
+
+| They have | Do |
+|---|---|
+| One HTML file, or a folder of static files | `node bin/prepare-page.mjs <file or folder> --top-hosts theirsite.com`. It writes a prepared copy next to the original (`<name>-embed-ready`), with the original untouched: frame.js added to every HTML file, `body{margin:0}` added first in the head so the page's own CSS still wins, the local files a single page points at copied along, and host config that allows framing (`_headers` for Netlify and Cloudflare, `vercel.json` for Vercel, merged into an existing one). Read its warnings, then host the prepared folder at step 3. A `.zip` gets unzipped first |
+| A repository or folder with a host already deploying it | Run `prepare-page` with `--in-place`, review the diff, commit and push so their host redeploys. Keep their host |
+| App source (a `package.json` with a build script) | `prepare-page` stops and names the build. Either build and prepare the output folder (`dist/`, `build/`, `out/`), or put `frame.js` in the static folder (`public/`), its tag in the root HTML or layout, and the frame-ancestors header in the host config, then let their host build it |
+| A page already live at an address | Run `bin/check-embed.mjs <address> --parent <builder page>` and use the result below |
+
+For a page already live, by what `check-embed` reports:
+
+- **Framing allowed, frame.js absent:** full screen and fixed height work as it is; go straight to step 4. Auto mode, and links that leave the frame, need frame.js: add it where the page's files live (their repository, or the tool that made it, such as Lovable, Bolt, v0 or Framer, through its code or custom code setting), or use full screen.
+- **Framing blocked:** the host sends `X-Frame-Options` or a narrow `frame-ancestors`. Change that header where the page is hosted (the fix line names it). When the person cannot change it, get the page's files (the tool's export or GitHub sync, or their repository), prepare them and host them at step 3. Copy only pages the person owns.
+- **Needs a login:** use the production or public address. Vercel previews are protected by default.
+- **Frame busting warning:** a script on the page jumps out of any frame. Remove it or guard it as the warning says, and redeploy.
+
 ### Step 3: host it
+
+Skip this step when the page is already live and `check-embed` passed.
 
 Follow [playbooks/hosting.md](playbooks/hosting.md). Deploy to production, then:
 
@@ -136,6 +158,8 @@ Tell the person, in a few lines: the live address, that it passed verification a
 | Path | What it is |
 |---|---|
 | `lib/snippet.js` | Builds the embed code for each builder, mode and format; names the playbook and verify command |
+| `lib/prepare.js` | Adds frame.js and the margin rule to existing HTML; audits for frame busting, 100vh and framing headers |
+| `bin/prepare-page.mjs` | Command line for `lib/prepare.js` on a file or folder |
 | `lib/headers.js` | Reads response headers and says whether another site may frame the page |
 | `embed/frame.js` | Goes on the hosted page: `is-embedded` class, link routing, height messages |
 | `embed/inspect.js` | Runs on the host page and measures the embed. One expression that returns a report |
@@ -144,9 +168,9 @@ Tell the person, in a few lines: the live address, that it passed verification a
 | `bin/verify-embed.mjs` | Headless Chrome at three widths: runs `inspect.js`, checks inside the frame, saves screenshots |
 | `playbooks/` | How to place the code in each builder, channel by channel |
 | `starter/` | The page to build from. `starter/frame.js` must stay identical to `embed/frame.js` (a test checks) |
-| `scripts/selftest.mjs` | Serves sample host pages with hostile builder wrappers and runs verify on each |
+| `scripts/selftest.mjs` | Serves sample host pages with hostile builder wrappers and runs verify on each, including a plain existing page before and after `prepare-page` |
 | `tests/` | `npm test`: offline, no browser |
 
 Message types between frame.js and the embed code are `gatori-embed:height` and `gatori-embed:load`. The embed code accepts them only from its own frame's window and origin.
 
-After a change to `lib/`, `embed/` or `bin/`: `npm test` and `npm run selftest` must both pass. A playbook change that comes from a live run should say which builder version or date it was checked on. Embed code is ASCII only. Keep the copy plain and short.
+After a change to `lib/`, `embed/`, `bin/` or `starter/frame.js`: `npm test` and `npm run selftest` must both pass. A playbook change that comes from a live run should say which builder version or date it was checked on. Embed code is ASCII only. Keep the copy plain and short.

@@ -60,8 +60,26 @@
     if (!body) return 0;
     var style = getComputedStyle(body);
     var rect = body.getBoundingClientRect();
-    var bottom = rect.bottom + (window.scrollY || 0) + (parseFloat(style.marginBottom) || 0);
+    var bottom = rect.bottom + (window.scrollY || 0) + Math.max(parseFloat(style.marginBottom) || 0, trailingMargin(body));
     return Math.ceil(Math.max(bottom, body.scrollHeight));
+  }
+
+  // The bottom margin of the last paragraph collapses through the body when
+  // nothing stops it, and the body's box leaves it out. Follow the last-child
+  // chain while margins can collapse and keep the largest one.
+  function trailingMargin(el) {
+    var most = 0;
+    for (var depth = 0; el && depth < 20; depth++) {
+      var s = getComputedStyle(el);
+      if ((parseFloat(s.paddingBottom) || 0) > 0 || (parseFloat(s.borderBottomWidth) || 0) > 0) break;
+      if (s.overflow !== 'visible' || /flex|grid|flow-root|inline|table/.test(s.display)) break;
+      var c = el.lastElementChild;
+      while (c && (/^(SCRIPT|STYLE|TEMPLATE|LINK|META|NOSCRIPT)$/.test(c.tagName) || /absolute|fixed/.test(getComputedStyle(c).position) || getComputedStyle(c).display === 'none')) c = c.previousElementSibling;
+      if (!c) break;
+      most = Math.max(most, parseFloat(getComputedStyle(c).marginBottom) || 0);
+      el = c;
+    }
+    return most;
   }
 
   function send() {
