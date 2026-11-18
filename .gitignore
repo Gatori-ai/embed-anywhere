@@ -1,0 +1,4 @@
+node_modules/
+embed-check/
+.netlify/
+.DS_Store

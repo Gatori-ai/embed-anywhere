@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Starter page | Embed Anywhere</title>
+<meta name="description" content="A starter page built to be shown inside Kajabi, GoHighLevel, Squarespace or any other site builder.">
+<style>
+  /* Rules for any page you plan to embed:
+     1. body margin 0, so no border shows inside the frame.
+     2. Nothing wider than the screen: images get max-width:100%.
+     3. In "fits its content" mode, avoid 100vh. The .is-embedded rules below show how. */
+  :root{--paper:#f2ece0;--card:#f8f4ea;--ink:#1b1a17;--muted:#6e675b;--line:#cfc2af;--accent:#c23b25}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;font-size:18px;line-height:1.6}
+  img{max-width:100%;height:auto}
+  a{color:var(--ink);text-decoration-color:var(--accent);text-underline-offset:3px}
+  .nav{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 24px;background:var(--card);border-bottom:1px solid var(--line)}
+  .nav b{font-weight:600}
+  .nav div{display:flex;gap:18px;font-size:15px}
+  .hero{min-height:100vh;display:grid;place-items:center;padding:64px 24px;text-align:center}
+  .is-embedded .hero{min-height:0;padding:96px 24px}
+  .hero h1{font-size:clamp(36px,7vw,72px);line-height:1.05;font-weight:500;letter-spacing:-1px;margin:0 0 20px}
+  .hero p{max-width:620px;margin:0 auto 28px;color:var(--muted)}
+  .button{display:inline-block;background:var(--ink);color:var(--card);padding:14px 22px;border-radius:3px;text-decoration:none}
+  section{padding:72px 24px;border-top:1px solid var(--line)}
+  .wrap{max-width:860px;margin:0 auto}
+  h2{font-size:32px;font-weight:500;margin:0 0 16px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:24px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:20px}
+  .card strong{display:block;margin-bottom:6px}
+  .card p{margin:0;font-size:16px;color:var(--muted)}
+  footer{padding:32px 24px;font-size:14px;color:var(--muted);text-align:center;border-top:1px solid var(--line)}
+  .status{font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <b>Your page</b>
+  <div><a href="#how">How it works</a><a href="#links">Links</a></div>
+</nav>
+
+<header class="hero">
+  <div>
+    <h1>Built anywhere.<br>Shown on your site.</h1>
+    <p>This page lives on its own host. Your site builder shows it in a frame, pixel for pixel, with its own fonts, menus and scripts intact.</p>
+    <a class="button" href="#how">See how</a>
+    <p class="status" id="where">Opened directly.</p>
+  </div>
+</header>
+
+<section id="how">
+  <div class="wrap">
+    <h2>How it works</h2>
+    <div class="cards">
+      <div class="card"><strong>1. Build</strong><p>Write this page in plain HTML or any framework your agent likes.</p></div>
+      <div class="card"><strong>2. Host</strong><p>Deploy it to Netlify, Vercel, Cloudflare Pages or GitHub Pages.</p></div>
+      <div class="card"><strong>3. Embed</strong><p>Paste one snippet into Kajabi, GoHighLevel, Squarespace or another builder.</p></div>
+      <div class="card"><strong>4. Check</strong><p>Run the verify step on the published page at phone and desktop widths.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="links">
+  <div class="wrap">
+    <h2>Links behave</h2>
+    <p>Inside a frame, frame.js sends links to your main site to the whole window and opens other sites in a new tab.</p>
+    <p><a href="https://github.com/Gatori-ai/embed-anywhere">The Embed Anywhere repository</a> opens in a new tab when this page is embedded.</p>
+  </div>
+</section>
+
+<footer>Starter page from <a href="https://github.com/Gatori-ai/embed-anywhere">Embed Anywhere</a>. Brought to you by <a href="https://gatori.ai">Gatori.ai</a>.</footer>
+
+<script>
+  if (document.documentElement.classList.contains('is-embedded') || window.self !== window.top) {
+    document.getElementById('where').textContent = 'Showing inside a frame.';
+  }
+</script>
+<!-- data-top-hosts: your main site's domain, so links to it leave the frame -->
+<script src="frame.js" data-top-hosts="yoursite.com"></script>
+</body>
+</html>

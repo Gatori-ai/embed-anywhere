@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plain iframe | Embed Anywhere demo</title>
+<meta name="robots" content="noindex">
+<style>
+  /* Imitates a page builder: padding on every wrapper, a centered max-width
+     column, a grid gap, and a transform that traps fixed elements. */
+  body{margin:8px;font-family:Helvetica,Arial,sans-serif;color:#333;background:#fff}
+  .site-header{display:flex;justify-content:space-between;padding:20px 32px;background:#222;color:#eee}
+  .page-section{padding:60px 5vw;transform:translateZ(0)}
+  .content-wrapper{max-width:960px;margin:0 auto;padding:0 24px}
+  .block-grid{display:grid;grid-template-columns:1fr;column-gap:24px;padding:12px}
+  .site-footer{padding:30px;background:#eee;text-align:center}
+</style>
+</head>
+<body>
+<header class="site-header"><span>Host site header</span><span>Home &middot; About</span></header>
+<section class="page-section"><div class="content-wrapper"><p>Host page text above the code block.</p></div></section>
+<section class="page-section"><div class="content-wrapper"><div class="block-grid"><div class="code-block">
+<iframe src="https://embed-anywhere.netlify.app/starter/" title="Starter page" width="100%" height="900" style="border:0"></iframe>
+</div></div></div></section>
+<section class="page-section"><div class="content-wrapper"><p>Host page text below the code block.</p></div></section>
+<footer class="site-footer">Host site footer</footer>
+</body>
+</html>

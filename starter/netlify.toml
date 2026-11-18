@@ -1,0 +1,9 @@
+# Netlify: lets other sites show this page in a frame.
+# Once your embed works, replace * with your own domains, for example:
+#   frame-ancestors 'self' https://www.yoursite.com https://yoursite.mykajabi.com
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "frame-ancestors *"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"

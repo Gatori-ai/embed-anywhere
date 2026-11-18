@@ -1,0 +1,21 @@
+{
+  "name": "embed-anywhere",
+  "version": "0.1.0",
+  "description": "Show a page you built and hosted anywhere inside Kajabi, GoHighLevel, Squarespace or any site builder, then check the published result.",
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "snippet": "node bin/embed-snippet.mjs",
+    "check": "node bin/check-embed.mjs",
+    "verify": "node bin/verify-embed.mjs",
+    "demo": "node scripts/build-demo.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "playwright-core": "1.64.1"
+  },
+  "homepage": "https://github.com/Gatori-ai/embed-anywhere",
+  "repository": { "type": "git", "url": "https://github.com/Gatori-ai/embed-anywhere.git" }
+}

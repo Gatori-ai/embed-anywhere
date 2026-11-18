@@ -1,0 +1,33 @@
+# The public demo site for Embed Anywhere: the generator at /, the starter page
+# at /starter/, and two sample host pages at /demo/. Deployed from git archive.
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/"
+  to = "/generator/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# The starter page may be shown in a frame by any site.
+[[headers]]
+  for = "/starter/*"
+  [headers.values]
+    Content-Security-Policy = "frame-ancestors *"
+
+[[headers]]
+  for = "/generator/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; frame-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+
+# Runs pasted embed code, so it allows inline code and any https frame,
+# and only the generator on this site may open it.
+[[headers]]
+  for = "/preview/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src https: http://localhost:* http://127.0.0.1:*; frame-ancestors 'self'; base-uri 'none'; form-action 'none'"
