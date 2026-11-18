@@ -1,12 +1,26 @@
-<p align="center"><img src="assets/gatori-enso.png" alt="" width="64"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/banner-night.png">
+    <img src="assets/banner.png" alt="Embed Anywhere. Your page, on any site builder. Brought to you by Gatori.ai" width="100%">
+  </picture>
+</p>
 
-<h1 align="center">Embed Anywhere</h1>
+Your AI agent builds a page, or takes one you already have, hosts it, and puts it on the site builder you already use: Kajabi, GoHighLevel, Squarespace, WordPress, Webflow, Shopify, Wix or anything that accepts custom code. Then it opens the published page at phone, tablet and desktop widths and fixes what it finds. You answer a few questions and approve the publish. You never copy or paste code.
 
-<p align="center">Your AI agent builds a page, hosts it, puts it on the site builder you already use, and checks the published result. You answer a few questions and approve the publish.<br>Brought to you by <a href="https://gatori.ai">Gatori.ai</a>.</p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/before-after-night.png">
+    <img src="assets/before-after.png" alt="Left: a page pasted into a builder as a plain iframe, boxed in by padding and cut off. Right: the same page placed by Embed Anywhere, edge to edge and full height." width="100%">
+  </picture>
+</p>
 
----
+Site builders make custom design hard. Their themes override your fonts, their sections add padding, and their editors strip your scripts. Embed Anywhere hosts the page on its own (Netlify, Vercel, Cloudflare or GitHub Pages) and shows it on your site in a frame. Visitors stay on your domain and see the page exactly as it was built.
 
-Site builders make custom design hard. Their themes override your fonts, their sections add padding, and their editors strip your scripts. Embed Anywhere has your agent host the page on its own (Netlify, Vercel, Cloudflare or GitHub Pages) and show it on your Kajabi, GoHighLevel, Squarespace or other site in a frame. Visitors stay on your domain and see the page exactly as it was built.
+| If you are | Start with |
+|---|---|
+| A person who wants a page on their site | [Use it](#use-it): give your agent this repository and the job |
+| An AI agent asked to put a page on someone's site | [AGENTS.md](AGENTS.md) |
+| An AI agent asked to change this project | [AGENTS.md, "Working on the code"](AGENTS.md#working-on-the-code) |
 
 ## Use it
 
@@ -66,6 +80,7 @@ Each builder has a playbook in [`playbooks/`](playbooks/). Untested playbooks co
 | [`embed/frame.js`](embed/frame.js) | Goes on the hosted page: link handling and height reporting |
 | [`embed/inspect.js`](embed/inspect.js) | Measures an embed on any page; agents run it in a browser tool |
 | `bin/` | `prepare-page` (readies a page you already have), `embed-snippet` (builds the code), `check-embed` (can this page be framed), `verify-embed` (checks the published page at three widths) |
+| `assets/` | Banners and the before and after image. Sources in [Gatori-ai/.github/brand](https://github.com/Gatori-ai/.github/tree/main/brand) |
 | `scripts/selftest.mjs` | `npm run selftest`: proves the checks work on this machine against sample pages built like a messy site builder |
 
 Needs Node 20 or later and Google Chrome (or Chromium) for the verify step.
